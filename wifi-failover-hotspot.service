@@ -1,0 +1,26 @@
+[Unit]
+Description=WiFi Failover Hotspot Service
+After=network.target NetworkManager.service
+Wants=NetworkManager.service
+Requires=NetworkManager.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/python3 /usr/local/bin/wifi-failover-hotspot.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# 安全配置
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE
+ReadWritePaths=/var/log/wifi-failover.log
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
