@@ -2,6 +2,7 @@
 """
 WiFi Failover Hotspot Service
 监控WiFi连接，断连时自动启动热点
+启动时如果WiFi未连接也会自动开启热点
 """
 
 import subprocess
@@ -283,11 +284,14 @@ class WiFiFailoverHotspot:
         """轮询监控模式（备用）"""
         logger.info("使用轮询模式监控网络状态...")
         
-        # 初始检查
+        # 初始检查 - 如果启动时WiFi未连接，立即开启热点
         self.wifi_connected = self.check_wifi_status()
         if not self.wifi_connected:
+            logger.info("启动时检测到WiFi未连接，立即激活热点...")
             self.setup_hotspot_profile()
             self.activate_hotspot()
+        else:
+            logger.info("启动时检测到WiFi已连接")
         
         while True:
             try:
@@ -341,6 +345,18 @@ class WiFiFailoverHotspot:
         if not self.setup_hotspot_profile():
             logger.error("无法设置热点配置，退出")
             return
+        
+        # 启动时立即检查WiFi状态，如果未连接就开启热点
+        logger.info("检查启动时WiFi连接状态...")
+        initial_wifi_status = self.check_wifi_status()
+        
+        if not initial_wifi_status:
+            logger.info("启动时WiFi未连接，立即激活热点...")
+            self.wifi_connected = False
+            self.activate_hotspot()
+        else:
+            logger.info("启动时WiFi已连接，等待监控...")
+            self.wifi_connected = True
         
         # 尝试使用事件驱动模式，失败则回退到轮询
         try:
