@@ -75,7 +75,7 @@ Edit `/usr/local/bin/wifi-failover-hotspot/wifi-failover-hotspot.py` to modify:
 - `CHECK_INTERVAL`: WiFi check interval in seconds (default: 30)
 - `WEB_PORT`: Web management port (default: 8080)
 
-### 🎮 Usage
+### Usage
 
 #### Starting the Service
 
@@ -210,7 +210,7 @@ wifi-failover-hotspot/
 
 ### 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the GPLv3 License - see the LICENSE file for details.
 
 ### 🙏 Acknowledgments
 
@@ -294,7 +294,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - `CHECK_INTERVAL`: WiFi检查间隔(秒) (默认: 30)
 - `WEB_PORT`: Web管理端口 (默认: 8080)
 
-### 🎮 使用方法
+### 使用方法
 
 #### 启动服务
 
@@ -429,7 +429,7 @@ wifi-failover-hotspot/
 
 ### 📄 许可证
 
-本项目采用MIT许可证 - 详见LICENSE文件。
+本项目采用GPLv3许可证 - 详见LICENSE文件。
 
 ### 🙏 致谢
 
