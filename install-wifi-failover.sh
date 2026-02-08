@@ -7,12 +7,12 @@ echo "正在安装WiFi故障转移热点服务..."
 
 # 1. 复制Python脚本
 echo "复制主脚本到 /usr/local/bin/"
-sudo cp wifi-failover-hotspot.py /usr/local/bin/
-sudo chmod +x /usr/local/bin/wifi-failover-hotspot.py
+sudo cp -r -v wifi-failover-hotspot /usr/local/bin/
+sudo chmod +x /usr/local/bin/wifi-failover-hotspot/wifi-failover-hotspot.py
 
 # 2. 复制服务文件
-#echo "复制系统服务文件"
-#sudo cp wifi-failover-hotspot.service /etc/systemd/system/
+echo "复制系统服务文件"
+sudo cp wifi-failover-hotspot.service /etc/systemd/system/
 
 # 3. 确保NetworkManager管理无线接口
 echo "配置NetworkManager..."

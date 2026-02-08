@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi故障转移热点管理 - 控制面板</title>
+    <link href="/css" rel="stylesheet">
+    <style>
+        .mode-indicator { padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .mode-hotspot { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .mode-auto { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .network-list { max-height: 300px; overflow-y: auto; }
+        .signal-bar { height: 20px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; }
+        .signal-strength { height: 100%; background-color: #28a745; }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="header-bar">
+            <h1 class="mb-0">WiFi故障转移热点管理</h1>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+        
+        <!-- 当前状态 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">当前状态</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="updateStatus()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                            刷新状态
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>WiFi连接:</strong> <span id="wifi-status">检查中...</span></p>
+                        <p><strong>热点状态:</strong> <span id="hotspot-status">检查中...</span></p>
+                        <p><strong>当前IP:</strong> <span id="current-ip">检查中...</span></p>
+                        <p class="text-muted"><small>最后更新时间: <span id="last-update">-</span></small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">连接模式</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mode-indicator mode-auto" id="mode-indicator">
+                            <strong>当前模式:</strong> <span id="current-mode">自动模式</span>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary" onclick="switchMode('auto')">自动模式</button>
+                            <button type="button" class="btn btn-outline-warning" onclick="switchMode('hotspot')">启动并连接到热点</button>
+                        </div>
+                        <p class="mt-2 text-muted"><small>自动模式: 根据WiFi连接状态自动切换; 启动并连接到热点模式: 手动启动热点</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- WiFi连接模块 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">WiFi连接</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>可用网络</h6>
+                        <div class="network-list card card-body mb-3" id="network-list">
+                            正在扫描网络...
+                        </div>
+                        <button class="btn btn-primary" onclick="scanNetworks()">重新扫描</button>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>连接WiFi</h6>
+                        <form id="wifi-connect-form">
+                            <div class="mb-3">
+                                <label for="ssid" class="form-label">网络名称 (SSID)</label>
+                                <input type="text" class="form-control" id="ssid" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="password">
+                            </div>
+                            <button type="submit" class="btn btn-success">连接</button>
+                        </form>
+                        <div id="connect-result" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 热点管理模块 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">热点管理</h5>
+            </div>
+            <div class="card-body">
+                <form id="hotspot-config-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="hotspot-ssid" class="form-label">热点名称 (SSID)</label>
+                                <input type="text" class="form-control" id="hotspot-ssid" value="{{ hotspot_config.ssid }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="hotspot-password" class="form-label">热点密码</label>
+                                <input type="text" class="form-control" id="hotspot-password" value="{{ hotspot_config.password }}" required minlength="8">
+                                <div class="form-text">至少8个字符</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">其他信息</label>
+                        <div class="form-control-plaintext">
+                            <p>接口: {{ hotspot_config.interface }} | IP地址: {{ hotspot_config.ip }}</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-warning">更新热点配置</button>
+                </form>
+                <div id="hotspot-result" class="mt-3"></div>
+            </div>
+        </div>
+        
+        <footer class="mt-4 text-center text-muted">
+            <p>WiFi故障转移热点服务 &copy; 2023</p>
+        </footer>
+    </div>
+    
+    <script src="/js"></script>
+    <script>
+        // 页面加载时获取状态
+        document.addEventListener('DOMContentLoaded', function() {
+            // 直接尝试更新状态，如果未授权，authFetch会显示登录模态框
+            updateStatus();
+            scanNetworks();
+        });
+        
+        function updateStatus() {
+            // 显示加载状态
+            document.getElementById('wifi-status').textContent = '刷新中...';
+            document.getElementById('hotspot-status').textContent = '刷新中...';
+            document.getElementById('current-ip').textContent = '刷新中...';
+            
+            authFetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('wifi-status').textContent = 
+                        data.wifi_connected ? '已连接' : '未连接';
+                    document.getElementById('hotspot-status').textContent = 
+                        data.hotspot_active ? '已激活' : '未激活';
+                    document.getElementById('current-ip').textContent = data.current_ip || '未知';
+                    
+                    // 更新模式指示器
+                    const modeIndicator = document.getElementById('mode-indicator');
+                    const currentMode = document.getElementById('current-mode');
+                    if (data.manual_mode === 'hotspot') {
+                        currentMode.textContent = '启动并连接到热点';
+                        modeIndicator.className = 'mode-indicator mode-hotspot';
+                    } else {
+                        currentMode.textContent = '自动模式';
+                        modeIndicator.className = 'mode-indicator mode-auto';
+                    }
+                    
+                    // 更新最后更新时间
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('zh-CN', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    document.getElementById('last-update').textContent = timeString;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('wifi-status').textContent = '刷新失败';
+                    document.getElementById('hotspot-status').textContent = '刷新失败';
+                    document.getElementById('current-ip').textContent = '刷新失败';
+                });
+        }
+        
+        function scanNetworks() {
+            const networkList = document.getElementById('network-list');
+            networkList.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> 正在扫描网络...</div>';
+            
+            authFetch('/api/wifi/scan')
+                .then(response => response.json())
+                .then(networks => {
+                    if (networks.length === 0) {
+                        networkList.innerHTML = '<p class="text-muted">未发现WiFi网络</p>';
+                        return;
+                    }
+                    
+                    let html = '<table class="table table-sm">';
+                    html += '<thead><tr><th>网络名称</th><th>信号强度</th><th>安全性</th><th>操作</th></tr></thead><tbody>';
+                    
+                    networks.forEach(network => {
+                        const signalPercent = Math.min(100, parseInt(network.signal) || 0);
+                        html += '<tr>';
+                        html += `<td>${escapeHtml(network.ssid || '隐藏网络')}</td>`;
+                        html += `<td>
+                            <div class="signal-bar">
+                                <div class="signal-strength" style="width: ${signalPercent}%"></div>
+                            </div>
+                            ${signalPercent}%
+                        </td>`;
+                        html += `<td>${escapeHtml(network.security || '开放')}</td>`;
+                        html += `<td><button class="btn btn-sm btn-outline-primary" onclick="fillSSID('${escapeJs(network.ssid || '')}')">选择</button></td>`;
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    networkList.innerHTML = html;
+                })
+                .catch(error => {
+                    networkList.innerHTML = '<p class="text-danger">扫描失败: ' + error + '</p>';
+                });
+        }
+        
+        function fillSSID(ssid) {
+            document.getElementById('ssid').value = ssid;
+            document.getElementById('password').focus();
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function escapeJs(str) {
+            // 转义字符串以在单引号JavaScript字符串中使用
+            return str.replace(/['\\\n\r\t]/g, function(c) {
+                switch(c) {
+                    case "'": return "\\'";
+                    case '\\': return '\\\\';
+                    case '\n': return '\\n';
+                    case '\r': return '\\r';
+                    case '\t': return '\\t';
+                    default: return c;
+                }
+            });
+        }
+        
+        // WiFi连接表单提交
+        document.getElementById('wifi-connect-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ssid = document.getElementById('ssid').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('connect-result');
+            
+            resultDiv.innerHTML = '<div class="alert alert-info">正在连接...</div>';
+            
+            authFetch('/api/wifi/connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ssid, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+                    updateStatus();
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '<div class="alert alert-danger">连接失败: ' + error + '</div>';
+            });
+        });
+        
+        // 热点配置表单提交
+        document.getElementById('hotspot-config-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ssid = document.getElementById('hotspot-ssid').value;
+            const password = document.getElementById('hotspot-password').value;
+            const resultDiv = document.getElementById('hotspot-result');
+            
+            resultDiv.innerHTML = '<div class="alert alert-info">正在更新...</div>';
+            
+            authFetch('/api/hotspot/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ssid, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '<div class="alert alert-danger">更新失败: ' + error + '</div>';
+            });
+        });
+        
+        function switchMode(mode) {
+            authFetch('/api/mode/switch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ mode })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatus();
+                } else {
+                    alert('切换模式失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('切换模式失败: ' + error);
+            });
+        }
+        // 认证相关变量和函数
+        
+        function showLoginModal() {
+            const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+            modal.show();
+        }
+        
+        function handleLogin() {
+            const password = document.getElementById('loginPassword').value;
+            if (!password) {
+                document.getElementById('loginError').textContent = '请输入密码';
+                return;
+            }
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                    document.getElementById('loginError').textContent = '';
+                    document.getElementById('loginPassword').value = '';
+                    // 重新尝试之前的请求
+                    updateStatus();
+                } else {
+                    document.getElementById('loginError').textContent = data.message;
+                }
+            })
+            .catch(error => {
+                document.getElementById('loginError').textContent = '登录失败: ' + error;
+            });
+        }
+        
+        // 增强的fetch函数，自动处理认证（依赖HttpOnly cookie）
+        function authFetch(url, options = {}) {
+            return fetch(url, options).then(response => {
+                if (response.status === 401) {
+                    // 未授权，跳转到登录页面
+                    window.location.href = '/';
+                    throw new Error('未授权');
+                }
+                return response;
+            });
+        }
+
+        // 登出函数
+        function logout() {
+            // 调用API登出
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 跳转到登录页面
+                    window.location.href = '/';
+                } else {
+                    alert('登出失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('登出错误:', error);
+                // 即使API调用失败，也尝试清除cookie并跳转
+                document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = '/';
+            });
+        }
+
+    </script>
+</body>
+</html>
