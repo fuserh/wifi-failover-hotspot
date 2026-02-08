@@ -26,8 +26,11 @@ A Python-based service that monitors WiFi connectivity and automatically activat
   - `Flask`
   - `itsdangerous`
   - `NetworkManager` (system service)
-
-### 🚀 Installation
+### 🚀 One-Click Installation Script
+   ```bash
+  curl -fsSL https://github.com/fuserh/wifi-failover-hotspot/raw/refs/heads/main/install.sh > install.sh && sudo bash install.sh
+   ```
+### Manual installation steps
 
 1. **Clone the repository**:
    ```bash
@@ -241,7 +244,10 @@ This project is licensed under the GPLv3 License - see the LICENSE file for deta
   - `itsdangerous`
   - `NetworkManager` (系统服务)
 
-### 一键安装脚本
+### 🚀 一键安装脚本
+   ```bash
+  curl -fsSL https://github.com/fuserh/wifi-failover-hotspot/raw/refs/heads/main/install.sh > install.sh && sudo bash install.sh
+   ```
 
 ### 手动安装步骤
 
