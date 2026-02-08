@@ -241,7 +241,9 @@ This project is licensed under the GPLv3 License - see the LICENSE file for deta
   - `itsdangerous`
   - `NetworkManager` (系统服务)
 
-### 🚀 安装步骤
+### 一键安装脚本
+
+### 手动安装步骤
 
 1. **克隆仓库**:
    ```bash
