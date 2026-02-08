@@ -31,7 +31,7 @@ A Python-based service that monitors WiFi connectivity and automatically activat
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/fuserh/wifi-failover-hotspot.git
    cd wifi-failover-hotspot
    ```
 
@@ -250,7 +250,7 @@ This project is licensed under the GPLv3 License - see the LICENSE file for deta
 
 1. **克隆仓库**:
    ```bash
-   git clone <仓库地址>
+   git clone https://github.com/fuserh/wifi-failover-hotspot.git
    cd wifi-failover-hotspot
    ```
 
