@@ -19,7 +19,7 @@ A Python-based service that monitors WiFi connectivity and automatically activat
 
 ### 📋 Requirements
 
-- **Operating System**: Linux (tested on Raspberry Pi OS, Ubuntu)
+- **Operating System**: GNU/Linux (tested on Raspberry Pi OS, Ubuntu)
 - **Python**: 3.6+
 - **Dependencies**:
   - `dbus-python`
@@ -236,7 +236,7 @@ This project is licensed under the GPLv3 License - see the LICENSE file for deta
 
 ### 📋 系统要求
 
-- **操作系统**: Linux (已在Raspberry Pi OS、Ubuntu上测试)
+- **操作系统**: GNU/Linux (已在Raspberry Pi OS、Ubuntu上测试)
 - **Python**: 3.6+
 - **依赖项**:
   - `dbus-python`
