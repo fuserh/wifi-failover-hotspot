@@ -207,17 +207,12 @@ wifi-failover-hotspot/
 3. Make your changes
 4. Test thoroughly
 5. Submit a pull request
+6. Translate the project into more languages
 
 ### 📄 License
 
 This project is licensed under the GPLv3 License - see the LICENSE file for details.
 
-### 🙏 Acknowledgments
-
-- Built with Python and Flask
-- Uses NetworkManager for network control
-- Bootstrap for web interface styling
-- Designed for Raspberry Pi and Linux systems
 
 ---
 
@@ -426,14 +421,8 @@ wifi-failover-hotspot/
 3. 进行修改
 4. 充分测试
 5. 提交Pull Request
+6. 将项目翻译成更多语言
 
 ### 📄 许可证
 
 本项目采用GPLv3许可证 - 详见LICENSE文件。
-
-### 🙏 致谢
-
-- 使用Python和Flask构建
-- 使用NetworkManager进行网络控制
-- 使用Bootstrap进行Web界面样式设计
-- 专为树莓派和Linux系统设计
